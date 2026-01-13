@@ -1,4 +1,13 @@
-# e-Visa Platform Design Guidelines
+# e-Visa Platform Design Guidelines - RDC
+
+## Official Color Scheme (Charte Graphique)
+- **Bleu principal**: #3774b6 (HSL: 211 53% 46%)
+- **Bleu foncé**: #1f4f8b (HSL: 213 53% 33%)
+- **Blanc**: #ffffff
+- **Gris clair**: #f5f7fa (HSL: 216 33% 97%)
+- **Gris texte**: #4a4a4a (HSL: 0 0% 29%)
+- **Vert succès**: #2ecc71 (HSL: 145 63% 49%)
+- **Rouge erreur**: #e74c3c (HSL: 6 78% 57%)
 
 ## Design Approach
 **Governmental Digital Service Design** - Drawing inspiration from modern government platforms like GOV.UK and Estonia's e-Residency while maintaining professional authority and accessibility. Focus on clarity, trust, and efficiency over visual flair.
@@ -12,6 +21,8 @@
 ---
 
 ## Typography Hierarchy
+
+**Fonts:** Inter / Poppins / Roboto (with system-ui fallback)
 
 **Headings:**
 - H1: Inter Bold, 2.5rem (40px) - Page titles, hero statements
