@@ -1,0 +1,373 @@
+CAHIER DES CHARGES COMPLET
+Plateforme e-Visa – République Démocratique du Congo
+1. Contexte institutionnel
+
+La République Démocratique du Congo souhaite moderniser son système de délivrance des visas afin de :
+
+Faciliter l’entrée des voyageurs étrangers
+
+Réduire les délais de traitement
+
+Sécuriser le processus de délivrance
+
+Digitaliser les procédures migratoires
+
+Lutter contre la fraude documentaire
+
+La plateforme e-Visa permettra aux usagers de soumettre, payer, suivre et recevoir leur visa en ligne, et à l’administration congolaise de contrôler, valider et émettre les e-Visas.
+
+2. Objectifs stratégiques
+
+Délivrance du visa 100 % numérique
+
+Paiement local et international via M-Pesa
+
+Validation humaine obligatoire (DGM)
+
+Génération d’un document officiel sécurisé
+
+Traçabilité complète des décisions
+
+Interopérabilité future (ambassades, frontières)
+
+3. Acteurs du système
+3.1 Usagers
+
+Demandeurs étrangers
+
+Sponsors / hôtes en RDC
+
+3.2 Administration
+
+Agents DGM
+
+Superviseurs
+
+Autorité d’émission
+
+Administrateur système
+
+4. Parcours utilisateur (Front-Office)
+Étapes de la demande
+
+Choix du type de visa
+(Tourisme, Affaires, Transit, Court séjour)
+
+Informations personnelles
+
+Identité complète
+
+Nationalité
+
+Coordonnées
+
+Informations de voyage
+
+Dates prévues
+
+Lieu d’entrée
+
+Adresse en RDC
+
+Passeport & documents
+
+Scan passeport
+
+Photo d’identité
+
+Lettre d’invitation / prise en charge
+
+Paiement M-Pesa
+
+Confirmation & suivi
+
+5. Paiement – M-Pesa (obligatoire)
+Exigences
+
+Intégration API M-Pesa RDC
+
+Paiement par :
+
+Numéro mobile
+
+Push STK (si disponible)
+
+Vérification automatique du paiement
+
+Blocage du dossier tant que paiement non confirmé
+
+Génération de reçu électronique
+
+États paiement
+
+INITIÉ
+
+EN ATTENTE
+
+PAYÉ
+
+ÉCHOUÉ
+
+ANNULÉ
+
+6. Back-Office Administratif (DGM)
+6.1 Fonctions principales
+
+Authentification sécurisée
+
+Liste des demandes
+
+Filtrage par :
+
+Statut
+
+Nationalité
+
+Type de visa
+
+Visualisation complète du dossier
+
+Téléchargement des documents
+
+Historique des actions
+
+6.2 Validation administrative
+Statuts du dossier
+
+DRAFT
+
+SUBMITTED
+
+UNDER_REVIEW
+
+NEED_INFO
+
+APPROVED
+
+REJECTED
+
+ISSUED
+
+EXPIRED
+
+REVOKED
+
+Actions admin
+
+Demande d’informations complémentaires
+
+Refus motivé
+
+Validation administrative
+
+Génération e-Visa
+
+Annulation / révocation
+
+7. Génération du e-Visa (PDF officiel)
+Contenu du document
+
+En-tête :
+
+République Démocratique du Congo
+
+Ministère de l’Intérieur
+
+Direction Générale de Migration (DGM)
+
+Logo officiel + logo e-Visa
+
+Numéro e-Visa unique
+
+Date d’émission
+
+Informations bénéficiaire
+
+Type de visa
+
+Durée de séjour
+
+Adresse de séjour en RDC
+
+Conditions légales
+
+Cachet et signature
+
+QR Code de vérification
+
+Contraintes
+
+Format A4
+
+PDF sécurisé (non modifiable)
+
+Archivage obligatoire
+
+QR code vérifiable publiquement
+
+8. Vérification publique du e-Visa
+
+URL publique :
+
+/verify/{code}
+
+
+Affiche :
+
+Nom du titulaire
+
+Nationalité
+
+N° passeport (partiellement masqué)
+
+Statut (valide / expiré / révoqué)
+
+Date d’émission
+
+9. Architecture technique
+Frontend
+
+Next.js (React)
+
+TailwindCSS
+
+i18n (FR / EN)
+
+Formulaires multi-étapes
+
+Responsive mobile-first
+
+Backend
+
+Node.js
+
+NestJS ou Express
+
+API REST
+
+Auth JWT
+
+Validation Zod
+
+Base de données
+
+PostgreSQL
+
+Prisma ORM
+
+10. Modèle de données (extrait)
+applications
+
+id
+
+visa_type
+
+status
+
+nationality
+
+passport_number
+
+passport_expiry
+
+travel_dates
+
+sponsor_name
+
+sponsor_address
+
+payment_status
+
+submitted_at
+
+visas
+
+visa_number
+
+verification_code
+
+application_id
+
+issued_at
+
+valid_from
+
+valid_to
+
+pdf_url
+
+payments
+
+provider = MPESA
+
+phone_number
+
+transaction_id
+
+amount
+
+status
+
+paid_at
+
+audit_logs
+
+actor_id
+
+action
+
+timestamp
+
+metadata
+
+11. Sécurité & conformité
+
+HTTPS obligatoire
+
+Chiffrement données sensibles
+
+Journalisation complète
+
+Séparation des rôles
+
+Protection contre fraude documentaire
+
+Conformité OWASP Top 10
+
+12. Notifications
+
+Email :
+
+Soumission
+
+Paiement
+
+Décision
+
+Émission du visa
+
+SMS (optionnel, via M-Pesa)
+
+13. Performance & accessibilité
+
+Temps de chargement < 3s
+
+Lighthouse ≥ 90
+
+WCAG 2.1 AA
+
+Fonctionne en faible bande passante
+
+14. Livrables attendus
+
+Code source complet
+
+Back-office fonctionnel
+
+Génération e-Visa PDF
+
+Documentation technique
+
+Guide admin
+
+Accès production
