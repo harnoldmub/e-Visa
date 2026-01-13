@@ -56,32 +56,20 @@ const steps = [
 
 const visaTypes = [
   {
-    type: "TOURISM",
-    title: "Visa Tourisme",
-    duration: "30 jours",
-    price: "50 USD",
-    description: "Pour les voyages touristiques et de loisirs.",
-  },
-  {
-    type: "BUSINESS",
-    title: "Visa Affaires",
-    duration: "90 jours",
-    price: "100 USD",
-    description: "Pour les voyages professionnels et commerciaux.",
-  },
-  {
-    type: "TRANSIT",
-    title: "Visa Transit",
+    type: "VOLANT_ORDINAIRE",
+    title: "Visa Volant Ordinaire",
     duration: "7 jours",
-    price: "30 USD",
-    description: "Pour les escales et transits.",
+    validity: "3 mois",
+    price: "250 $US",
+    description: "Visa standard pour séjour de courte durée. Validité de 3 mois à compter de la délivrance.",
   },
   {
-    type: "SHORT_STAY",
-    title: "Visa Court Séjour",
-    duration: "15 jours",
-    price: "40 USD",
-    description: "Pour les visites de courte durée.",
+    type: "VOLANT_SPECIFIQUE",
+    title: "Visa Volant Spécifique",
+    duration: "30 jours",
+    validity: "3 mois",
+    price: "800 $US",
+    description: "Visa spécial pour missions particulières. Séjour prolongé jusqu'à 30 jours.",
   },
 ];
 
@@ -208,20 +196,23 @@ export default function HomePage() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {visaTypes.map((visa, index) => (
-              <Card key={index} className="hover-elevate overflow-visible">
-                <CardContent className="p-6">
+              <Card key={index} className="hover-elevate overflow-visible border-2">
+                <CardContent className="p-8">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-bold text-primary">{visa.price}</span>
-                    <span className="text-sm text-muted-foreground">{visa.duration}</span>
+                    <span className="text-3xl font-bold text-primary">{visa.price}</span>
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{visa.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{visa.description}</p>
+                  <h3 className="text-xl font-semibold mb-2">{visa.title}</h3>
+                  <div className="flex items-center gap-4 mb-3 text-sm text-muted-foreground">
+                    <span>Durée: {visa.duration}</span>
+                    <span>Validité: {visa.validity}</span>
+                  </div>
+                  <p className="text-muted-foreground mb-6">{visa.description}</p>
                   <Link href={`/apply?type=${visa.type}`}>
-                    <Button variant="outline" className="w-full gap-2" data-testid={`button-select-${visa.type.toLowerCase()}`}>
-                      Sélectionner
-                      <ChevronRight className="h-4 w-4" />
+                    <Button className="w-full gap-2" data-testid={`button-select-${visa.type.toLowerCase()}`}>
+                      Commencer la demande
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </CardContent>

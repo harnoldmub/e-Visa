@@ -3,8 +3,8 @@ import { pgTable, text, varchar, timestamp, integer, jsonb } from "drizzle-orm/p
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Visa Types
-export const visaTypes = ["TOURISM", "BUSINESS", "TRANSIT", "SHORT_STAY"] as const;
+// Visa Types - Official DGM categories
+export const visaTypes = ["VOLANT_ORDINAIRE", "VOLANT_SPECIFIQUE"] as const;
 export type VisaType = typeof visaTypes[number];
 
 // Application Status
@@ -50,40 +50,56 @@ export const applications = pgTable("applications", {
   applicationNumber: text("application_number").notNull().unique(),
   visaType: text("visa_type").notNull(),
   status: text("status").notNull().default("DRAFT"),
+  codeInstitution: text("code_institution"), // Optional institutional code
   
-  // Personal Information
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
+  // Requérant (Applicant) Information
+  firstName: text("first_name").notNull(), // Prénom
+  lastName: text("last_name").notNull(), // Noms
   email: text("email").notNull(),
   phone: text("phone").notNull(),
+  phoneCountryCode: text("phone_country_code").default("+243"),
   nationality: text("nationality").notNull(),
+  countryOfOrigin: text("country_of_origin").notNull(), // Pays de provenance
   dateOfBirth: text("date_of_birth").notNull(),
   placeOfBirth: text("place_of_birth").notNull(),
   gender: text("gender").notNull(),
-  occupation: text("occupation"),
+  civilStatus: text("civil_status").notNull(), // État civil
+  occupation: text("occupation").notNull(), // Profession
+  address: text("address").notNull(), // Adresse complète
   
   // Passport Information
   passportNumber: text("passport_number").notNull(),
-  passportIssueDate: text("passport_issue_date").notNull(),
-  passportExpiryDate: text("passport_expiry_date").notNull(),
-  passportIssuingCountry: text("passport_issuing_country").notNull(),
+  passportExpiryDate: text("passport_expiry_date").notNull(), // Validité
   
   // Travel Information
-  arrivalDate: text("arrival_date").notNull(),
-  departureDate: text("departure_date").notNull(),
-  entryPoint: text("entry_point").notNull(),
-  addressInDRC: text("address_in_drc").notNull(),
-  purposeOfVisit: text("purpose_of_visit"),
+  arrivalDate: text("arrival_date").notNull(), // Date d'entrée
+  purposeOfVisit: text("purpose_of_visit").notNull(), // Raison du voyage
   
-  // Sponsor/Host Information
-  sponsorName: text("sponsor_name"),
+  // Documents (base64 or URLs)
+  photoId: text("photo_id"), // Photo d'identité
+  passportScan: text("passport_scan"), // Copie du passeport
+  
+  // Preneur en charge (Sponsor/Host) Information
+  sponsorFirstName: text("sponsor_first_name"),
+  sponsorLastName: text("sponsor_last_name"),
+  sponsorPlaceOfBirth: text("sponsor_place_of_birth"),
+  sponsorDateOfBirth: text("sponsor_date_of_birth"),
+  sponsorGender: text("sponsor_gender"),
+  sponsorIdNumber: text("sponsor_id_number"), // N° Passeport/Carte d'identité
+  sponsorIdExpiry: text("sponsor_id_expiry"), // Validité
+  sponsorIdIssuedBy: text("sponsor_id_issued_by"), // Délivré par
+  sponsorCivilStatus: text("sponsor_civil_status"), // État civil
   sponsorAddress: text("sponsor_address"),
+  sponsorNationality: text("sponsor_nationality"),
+  sponsorEmail: text("sponsor_email"),
   sponsorPhone: text("sponsor_phone"),
+  sponsorPhoneCountryCode: text("sponsor_phone_country_code").default("+243"),
+  sponsorRelation: text("sponsor_relation"), // Relation avec le requérant
   
-  // Documents (URLs/paths)
-  passportScan: text("passport_scan"),
-  photoId: text("photo_id"),
-  invitationLetter: text("invitation_letter"),
+  // Sponsor Documents
+  sponsorRequestLetter: text("sponsor_request_letter"), // Lettre de demande
+  sponsorPassportScan: text("sponsor_passport_scan"), // Copie du passeport
+  sponsorVisaScan: text("sponsor_visa_scan"), // Copie du VISA
   
   // Payment
   paymentStatus: text("payment_status").default("INITIATED"),
@@ -208,12 +224,22 @@ export const travelInfoSchema = z.object({
   sponsorPhone: z.string().optional(),
 });
 
-// Visa type labels
-export const visaTypeLabels: Record<VisaType, { fr: string; en: string; duration: number; price: number }> = {
-  TOURISM: { fr: "Tourisme", en: "Tourism", duration: 30, price: 50 },
-  BUSINESS: { fr: "Affaires", en: "Business", duration: 90, price: 100 },
-  TRANSIT: { fr: "Transit", en: "Transit", duration: 7, price: 30 },
-  SHORT_STAY: { fr: "Court séjour", en: "Short Stay", duration: 15, price: 40 },
+// Visa type labels - Official DGM pricing
+export const visaTypeLabels: Record<VisaType, { fr: string; en: string; duration: number; price: number; validityMonths: number }> = {
+  VOLANT_ORDINAIRE: { 
+    fr: "Visa Volant Ordinaire", 
+    en: "Standard Flying Visa", 
+    duration: 7, 
+    price: 250,
+    validityMonths: 3
+  },
+  VOLANT_SPECIFIQUE: { 
+    fr: "Visa Volant Spécifique", 
+    en: "Specific Flying Visa", 
+    duration: 30, 
+    price: 800,
+    validityMonths: 3
+  },
 };
 
 // Status labels with colors
@@ -229,16 +255,30 @@ export const statusLabels: Record<ApplicationStatus, { fr: string; en: string; c
   REVOKED: { fr: "Révoqué", en: "Revoked", color: "red" },
 };
 
-// Entry points in DRC
+// Entry points in DRC - Official DGM border posts
 export const entryPoints = [
-  "Aéroport International de N'djili (Kinshasa)",
-  "Aéroport de Lubumbashi",
-  "Aéroport de Goma",
-  "Aéroport de Kisangani",
-  "Poste frontalier de Kasumbalesa",
-  "Poste frontalier de Lufu",
-  "Port de Matadi",
+  "AERO N'DJILI (Kinshasa)",
+  "AERO LUANO (Lubumbashi)", 
+  "AERO BANGBOKA (Kisangani)",
+  "AERO DOKO",
+  "AERO GOMA",
+  "AERO L'SHI (Lubumbashi)",
+  "AERO BUNIA",
+  "KASUMBALESA",
+  "MUANDA",
+  "LUFU",
+  "ARU",
+  "B.N (Beach Ngobila)",
   "Autre",
+] as const;
+
+// Civil status options
+export const civilStatuses = [
+  "Célibataire",
+  "Marié(e)",
+  "Divorcé(e)",
+  "Veuf(ve)",
+  "Séparé(e)",
 ] as const;
 
 // Countries list (subset)

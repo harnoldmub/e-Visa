@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { FileText, Mail, Phone, MapPin, Globe } from "lucide-react";
+import { FileText, Mail, Phone, MapPin, Globe, Shield } from "lucide-react";
 
 export function Footer() {
   return (
@@ -26,13 +26,13 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold">Liens Rapides</h3>
             <nav className="flex flex-col gap-2">
-              <Link href="/apply" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/apply" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-apply">
                 Demande de Visa
               </Link>
-              <Link href="/track" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/track" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-track">
                 Suivi de Demande
               </Link>
-              <Link href="/verify" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/verify" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-verify">
                 Vérifier un e-Visa
               </Link>
               <Link href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -44,11 +44,19 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold">Types de Visa</h3>
             <nav className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">Visa Tourisme</span>
-              <span className="text-sm text-muted-foreground">Visa Affaires</span>
-              <span className="text-sm text-muted-foreground">Visa Transit</span>
-              <span className="text-sm text-muted-foreground">Visa Court Séjour</span>
+              <span className="text-sm text-muted-foreground">Visa Volant Ordinaire - 250 $US</span>
+              <span className="text-sm text-muted-foreground">Visa Volant Spécifique - 800 $US</span>
             </nav>
+            <div className="pt-4">
+              <Link 
+                href="/admin/login" 
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-admin"
+              >
+                <Shield className="h-4 w-4" />
+                Administration DGM
+              </Link>
+            </div>
           </div>
 
           <div className="space-y-4">
