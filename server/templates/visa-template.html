@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Visa RDC - {{visaNumber}}</title>
+
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 11px;
+      color: #000;
+      line-height: 1.35;
+    }
+
+    /* Forcer les couleurs en PDF */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+    }
+
+    .header-topline {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .header-subline {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .logos-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .logo-box {
+      width: 140px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+    }
+
+    .logo-dgm {
+      width: 220px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* TOP INFO */
+    .top-info {
+      display: flex;
+      gap: 18px;
+      margin-top: 6px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+
+    .photo-box {
+      width: 155px;
+      height: 175px;
+      border: 2px solid #000;
+      flex-shrink: 0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .photo-placeholder {
+      color: #999;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .admin-info {
+      flex: 1;
+      padding-top: 2px;
+    }
+
+    .dg-title {
+      text-align: center;
+      font-style: italic;
+      font-size: 20px;
+      margin: 6px 0 8px;
+    }
+
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2px;
+      font-size: 12px;
+    }
+
+    .meta-table td {
+      padding: 3px 4px;
+      vertical-align: top;
+    }
+
+    .meta-label {
+      width: 55px;
+      font-weight: bold;
+    }
+
+    .meta-colon {
+      width: 12px;
+    }
+
+    /* VISA NUMBER BOX */
+    .visa-number {
+      background: #d9d9d9;
+      border: 3px solid #000;
+      padding: 14px 10px;
+      text-align: center;
+      margin: 12px auto;
+      font-size: 18px;
+      font-weight: bold;
+      width: 85%;
+    }
+
+    /* MAIN TITLE */
+    .section-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin: 10px 0 8px;
+      letter-spacing: 0.2px;
+    }
+
+    /* TABLES */
+    table.main {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    table.main th,
+    table.main td {
+      border: 1px solid #000;
+      padding: 6px;
+    }
+
+    table.main th {
+      background: #efefef;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    /* INFO BLOCK (like official) */
+    .info-block {
+      width: 80%;
+      margin-left: 55px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 8px;
+      padding: 2px 0;
+    }
+
+    .info-label {
+      width: 220px;
+      font-weight: bold;
+    }
+
+    .info-value {
+      flex: 1;
+      font-weight: bold;
+    }
+
+    .info-colon {
+      width: 12px;
+    }
+
+    /* LEGAL TEXT */
+    .legal {
+      margin-top: 10px;
+      font-size: 10px;
+      line-height: 1.25;
+      text-align: justify;
+    }
+
+    /* BARCODE / QR + SIGNATURE */
+    .bottom-zone {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .barcode-box {
+      width: 55%;
+      text-align: center;
+    }
+
+    .barcode-img {
+      width: 100%;
+      height: 70px;
+      object-fit: contain;
+    }
+
+    .qr-box {
+      width: 110px;
+      text-align: center;
+    }
+
+    .qr-img {
+      width: 105px;
+      height: 105px;
+      object-fit: contain;
+      border: 1px solid #000;
+    }
+
+    .sign-box {
+      width: 38%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      position: relative;
+      min-height: 130px;
+    }
+
+    .sign-sub {
+      font-size: 16px;
+      margin-top: 6px;
+    }
+
+    .sign-img {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 220px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .stamp-img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+    }
+
+    .stamp-wrap {
+      width: 160px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* FOOTER */
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      text-align: center;
+      padding-bottom: 6px;
+    }
+
+    .tricolor-bar {
+      display: flex;
+      height: 10px;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+
+    .yellow {
+      background: #f2c200;
+      flex: 1;
+    }
+
+    .blue {
+      background: #3774b6;
+      flex: 1;
+    }
+
+    .red {
+      background: #d71920;
+      flex: 1;
+    }
+
+    .motto {
+      font-size: 11px;
+      font-style: italic;
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    .contacts {
+      font-size: 8px;
+      color: #777;
+      padding: 0 15mm;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- HEADER TEXT -->
+    <div class="header">
+      <div class="header-topline">République Démocratique du congo</div>
+      <div class="header-subline">Ministère de l'Intérieur et Sécurité</div>
+
+      <!-- LOGOS -->
+      <div class="logos-row">
+        <div class="logo-box">
+          {{#if logoArmoiries}}
+          <img class="logo" src="{{logoArmoiries}}" alt="Armoiries RDC" />
+          {{else}}
+          <div
+            style="width:90px;height:90px;border:1px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;">
+            ARM.
+          </div>
+          {{/if}}
+        </div>
+
+        <div style="flex:1;text-align:center;">
+          {{#if logoDgm}}
+          <img class="logo-dgm" src="{{logoDgm}}" alt="DGM" />
+          {{else}}
+          <div style="font-weight:bold;font-size:26px;">DGM</div>
+          <div style="font-size:10px;">Direction Générale de Migration</div>
+          {{/if}}
+        </div>
+
+        <div class="logo-box">
+          {{#if logoEvisa}}
+          <img class="logo" src="{{logoEvisa}}" alt="e-Visa RDC" />
+          {{else}}
+          <div
+            style="width:90px;height:90px;border:1px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;">
+            e-Visa
+          </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTO + META -->
+    <div class="top-info">
+      <div class="photo-box">
+        {{#if photoUrl}}
+        <img src="{{photoUrl}}" alt="Photo du demandeur" />
+        {{else}}
+        <div class="photo-placeholder">PHOTO</div>
+        {{/if}}
+      </div>
+
+      <div class="admin-info">
+        <div class="dg-title">Le Directeur Général</div>
+
+        <table class="meta-table">
+          <tr>
+            <td class="meta-label">DE</td>
+            <td class="meta-colon">:</td>
+            <td>DG/DGM</td>
+          </tr>
+          <tr>
+            <td class="meta-label">A</td>
+            <td class="meta-colon">:</td>
+            <td>
+              CPS / DGM / AERO N'DJILI - B.N – LUANO – BANGBOKA – DOKO – GOMA - L'SHI –<br />
+              BUNIA – ARU – KASUMBALESA – MUANDA – LUFU<br />
+              : CPS / DGM / B.N – L'SHI – KIS. - GOMA
+            </td>
+          </tr>
+          <tr>
+            <td class="meta-label">DATE</td>
+            <td class="meta-colon">:</td>
+            <td>{{issueDate}}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- VISA NUMBER -->
+    <div class="visa-number">N°&nbsp;&nbsp;E-VVL/DGM/DG/CAB/599825660824</div>
+
+    <!-- TITLE -->
+    <div class="section-title">
+      V.I QUE J’AVOIR ACCORDE VISA VOLANT {{visaTypeLabel}} A :
+    </div>
+
+    <!-- MAIN TABLE -->
+    <table class="main">
+      <thead>
+        <tr>
+          <th style="width:45px;">N°</th>
+          <th>NOM & POST NOMS</th>
+          <th style="width:170px;">NATIONALITE</th>
+          <th style="width:170px;">N° PASSPORT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align:center;"><b>1.</b></td>
+          <td><b>{{lastName}} {{firstName}}</b></td>
+          <td><b>{{nationality}}</b></td>
+          <td><b>{{passportNumber}}</b></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- INFO BLOCK (optionals handled) -->
+    <div class="info-block">
+      <div class="info-row">
+        <div class="info-label">PROVENANCE</div>
+        <div class="info-colon">:</div>
+        <div class="info-value">{{#if provenance}}{{provenance}}{{else}}-{{/if}}</div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-label">ACCOMPAGNE DE</div>
+        <div class="info-colon">:</div>
+        <div class="info-value">{{#if accompaniedBy}}{{accompaniedBy}}{{else}}-{{/if}}</div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-label">PRISE EN CHARGE PAR</div>
+        <div class="info-colon">:</div>
+        <div class="info-value">{{#if sponsorFullName}}{{sponsorFullName}}{{else}}-{{/if}}</div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-label">ADRESSE</div>
+        <div class="info-colon">:</div>
+        <div class="info-value">{{#if addressInDRC}}{{addressInDRC}}{{else}}KINSHASA / GOMBE{{/if}}</div>
+      </div>
+    </div>
+
+    <!-- LEGAL -->
+    <div class="legal">
+      (-) QUE LE PRENEUR EN CHARGE PRESENTE L'ORIGINAL DE CE DOCUMENT AUPRES DE LA COMPAGNIE AERIENNE CENSEE
+      EMBARQUER LE BENEFICIAIRE. CE DOCUMENT PERMET AU BENEFICIAIRE DE SE PRESENTER A UN POSTE FRONTALIER OU
+      FRONTIERE AFIN D'OBTENIR UN VISA AEROPORTUAIRE OU PORTUAIRE QUI DONNE DROIT A UN SEJOUR DE
+      <b>{{stayDays}}</b> JOURS (-) DEPASSER CE DELAI (-) LE BENEFICIAIRE DEVRA SE PRESENTER A L'EMG/DGM MUNI DE LA
+      COPIE
+      DU PRESENT DOCUMENT POUR REGULARISER SON SEJOUR (-) CE DOCUMENT A UNE VALIDITE DE 3 MOIS A COMPTER DE LA DATE
+      DE SA DELIVRANCE (-) S.P. (-) (-)
+    </div>
+
+    <!-- BOTTOM: barcode/qr + stamp + signature -->
+    <div class="bottom-zone">
+
+      <!-- Left: Barcode OR QR -->
+      <div class="barcode-box">
+        {{#if barcodeUrl}}
+        <img class="barcode-img" src="{{barcodeUrl}}" alt="Code-barres" />
+        {{else}}
+        {{#if qrCodeUrl}}
+        <div class="qr-box">
+          <img class="qr-img" src="{{qrCodeUrl}}" alt="QR code" />
+          <div style="font-size:9px;margin-top:4px;">Vérification</div>
+        </div>
+        {{else}}
+        <div style="height:70px;"></div>
+        {{/if}}
+        {{/if}}
+      </div>
+
+      <!-- Right: Signature -->
+      <div class="sign-box">
+        LE DIRECTEUR GENERAL<br />
+        <div class="sign-sub">OU SON DELEGUE</div>
+
+        {{#if signatureUrl}}
+        <img class="sign-img" src="{{signatureUrl}}" alt="Signature" />
+        {{else}}
+        <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:12px;font-size:10px;color:#666;">
+          (Signature)
+        </div>
+        {{/if}}
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="tricolor-bar">
+      <div class="yellow"></div>
+      <div class="blue"></div>
+      <div class="red"></div>
+    </div>
+    <div class="motto">Courtoisie, Fermeté, Honnêteté</div>
+    <div class="contacts">
+      65, Boulevard du 30 Juin ● Kinshasa, Commune de la Gombe ● Téléphone : +243 81 030 07 55 ● E-mail :
+      support@evisa.gouv.cd
+    </div>
+  </div>
+
+</body>
+
+</html>

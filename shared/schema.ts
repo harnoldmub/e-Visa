@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -30,7 +30,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("agent"),
+  role: text("role").notNull().default("AGENT"), // AGENT, SUPERVISOR, ISSUER, SUPERADMIN
   fullName: text("full_name"),
 });
 
@@ -44,41 +44,65 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+export const userRoles = ["AGENT", "SUPERVISOR", "ISSUER", "SUPERADMIN"] as const;
+export type UserRole = typeof userRoles[number];
+
+// Visa Products (Dynamic Pricing)
+export const visaProducts = pgTable("visa_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: text("type").notNull().unique(), // VOLANT_ORDINAIRE, VOLANT_SPECIFIQUE
+  labelFr: text("label_fr").notNull(),
+  labelEn: text("label_en").notNull(),
+  price: integer("price").notNull(), // in USD
+  currency: text("currency").notNull().default("USD"),
+  durationDays: integer("duration_days").notNull(),
+  validityMonths: integer("validity_months").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+export const insertVisaProductSchema = createInsertSchema(visaProducts).omit({
+  id: true,
+});
+
+export type InsertVisaProduct = z.infer<typeof insertVisaProductSchema>;
+export type VisaProduct = typeof visaProducts.$inferSelect;
+
 // Visa Applications table
 export const applications = pgTable("applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   applicationNumber: text("application_number").notNull().unique(),
+  sequenceNumber: integer("sequence_number").notNull(), // Strict incremental sequence
   visaType: text("visa_type").notNull(),
   status: text("status").notNull().default("DRAFT"),
   codeInstitution: text("code_institution"), // Optional institutional code
-  
+
   // Requérant (Applicant) Information
   firstName: text("first_name").notNull(), // Prénom
   lastName: text("last_name").notNull(), // Noms
   email: text("email").notNull(),
-  phone: text("phone").notNull(),
+  phone: text("phone"), // Can be filled later
   phoneCountryCode: text("phone_country_code").default("+243"),
-  nationality: text("nationality").notNull(),
-  countryOfOrigin: text("country_of_origin").notNull(), // Pays de provenance
-  dateOfBirth: text("date_of_birth").notNull(),
-  placeOfBirth: text("place_of_birth").notNull(),
-  gender: text("gender").notNull(),
-  civilStatus: text("civil_status").notNull(), // État civil
-  occupation: text("occupation").notNull(), // Profession
-  address: text("address").notNull(), // Adresse complète
-  
+  nationality: text("nationality").notNull(), // Required for ID generation
+  countryOfOrigin: text("country_of_origin"), // Pays de provenance
+  dateOfBirth: text("date_of_birth"),
+  placeOfBirth: text("place_of_birth"),
+  gender: text("gender"),
+  civilStatus: text("civil_status"), // État civil
+  occupation: text("occupation"), // Profession
+  address: text("address"), // Adresse complète
+
   // Passport Information
-  passportNumber: text("passport_number").notNull(),
-  passportExpiryDate: text("passport_expiry_date").notNull(), // Validité
-  
+  passportNumber: text("passport_number"),
+  passportExpiryDate: text("passport_expiry_date"), // Validité
+
   // Travel Information
-  arrivalDate: text("arrival_date").notNull(), // Date d'entrée
-  purposeOfVisit: text("purpose_of_visit").notNull(), // Raison du voyage
-  
+  arrivalDate: text("arrival_date"), // Date d'entrée
+  purposeOfVisit: text("purpose_of_visit"), // Raison du voyage
+
   // Documents (base64 or URLs)
   photoId: text("photo_id"), // Photo d'identité
   passportScan: text("passport_scan"), // Copie du passeport
-  
+
   // Preneur en charge (Sponsor/Host) Information
   sponsorFirstName: text("sponsor_first_name"),
   sponsorLastName: text("sponsor_last_name"),
@@ -95,20 +119,20 @@ export const applications = pgTable("applications", {
   sponsorPhone: text("sponsor_phone"),
   sponsorPhoneCountryCode: text("sponsor_phone_country_code").default("+243"),
   sponsorRelation: text("sponsor_relation"), // Relation avec le requérant
-  
+
   // Sponsor Documents
   sponsorRequestLetter: text("sponsor_request_letter"), // Lettre de demande
   sponsorPassportScan: text("sponsor_passport_scan"), // Copie du passeport
   sponsorVisaScan: text("sponsor_visa_scan"), // Copie du VISA
-  
+
   // Payment
   paymentStatus: text("payment_status").default("INITIATED"),
-  
+
   // Timestamps
   submittedAt: timestamp("submitted_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  
+
   // Admin notes
   adminNotes: text("admin_notes"),
   rejectionReason: text("rejection_reason"),
@@ -117,6 +141,7 @@ export const applications = pgTable("applications", {
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
   applicationNumber: true,
+  sequenceNumber: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -130,15 +155,15 @@ export const visas = pgTable("visas", {
   visaNumber: text("visa_number").notNull().unique(),
   verificationCode: text("verification_code").notNull().unique(),
   applicationId: varchar("application_id").notNull(),
-  
+
   // Visa details
   validFrom: text("valid_from").notNull(),
   validTo: text("valid_to").notNull(),
   stayDuration: integer("stay_duration").notNull(), // in days
-  
+
   // PDF
   pdfUrl: text("pdf_url"),
-  
+
   // Timestamps
   issuedAt: timestamp("issued_at").defaultNow(),
 });
@@ -198,11 +223,11 @@ export const personalInfoSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Email invalide"),
-  phone: z.string().min(8, "Numéro de téléphone invalide"),
+  phone: z.string().optional(),
   nationality: z.string().min(2, "Nationalité requise"),
-  dateOfBirth: z.string().min(1, "Date de naissance requise"),
-  placeOfBirth: z.string().min(2, "Lieu de naissance requis"),
-  gender: z.enum(["male", "female", "other"]),
+  dateOfBirth: z.string().optional(),
+  placeOfBirth: z.string().optional(),
+  gender: z.enum(["male", "female", "other"]).optional(),
   occupation: z.string().optional(),
 });
 
@@ -226,17 +251,17 @@ export const travelInfoSchema = z.object({
 
 // Visa type labels - Official DGM pricing
 export const visaTypeLabels: Record<VisaType, { fr: string; en: string; duration: number; price: number; validityMonths: number }> = {
-  VOLANT_ORDINAIRE: { 
-    fr: "Visa Volant Ordinaire", 
-    en: "Standard Flying Visa", 
-    duration: 7, 
+  VOLANT_ORDINAIRE: {
+    fr: "Visa Volant Ordinaire",
+    en: "Standard Flying Visa",
+    duration: 7,
     price: 250,
     validityMonths: 3
   },
-  VOLANT_SPECIFIQUE: { 
-    fr: "Visa Volant Spécifique", 
-    en: "Specific Flying Visa", 
-    duration: 30, 
+  VOLANT_SPECIFIQUE: {
+    fr: "Visa Volant Spécifique",
+    en: "Specific Flying Visa",
+    duration: 30,
     price: 800,
     validityMonths: 3
   },
@@ -258,7 +283,7 @@ export const statusLabels: Record<ApplicationStatus, { fr: string; en: string; c
 // Entry points in DRC - Official DGM border posts
 export const entryPoints = [
   "AERO N'DJILI (Kinshasa)",
-  "AERO LUANO (Lubumbashi)", 
+  "AERO LUANO (Lubumbashi)",
   "AERO BANGBOKA (Kisangani)",
   "AERO DOKO",
   "AERO GOMA",
@@ -281,7 +306,7 @@ export const civilStatuses = [
   "Séparé(e)",
 ] as const;
 
-// Countries list (subset)
+// Countries to ISO3 Mapping
 export const countries = [
   "Afghanistan", "Albanie", "Algérie", "Allemagne", "Angola", "Argentine",
   "Australie", "Autriche", "Belgique", "Bénin", "Brésil", "Burkina Faso",
@@ -293,3 +318,32 @@ export const countries = [
   "Rwanda", "Sénégal", "Soudan", "Suisse", "Tanzanie", "Tchad", "Togo",
   "Tunisie", "Turquie", "Zambie", "Zimbabwe", "Autre",
 ] as const;
+
+// Helper to get ISO3 code
+export const getCountryISO3 = (country: string): string => {
+  const map: Record<string, string> = {
+    "Afghanistan": "AFG", "Albanie": "ALB", "Algérie": "DZA", "Allemagne": "DEU",
+    "Angola": "AGO", "Argentine": "ARG", "Australie": "AUS", "Autriche": "AUT",
+    "Belgique": "BEL", "Bénin": "BEN", "Brésil": "BRA", "Burkina Faso": "BFA",
+    "Burundi": "BDI", "Cameroun": "CMR", "Canada": "CAN", "Centrafrique": "CAF",
+    "Chine": "CHN", "Congo-Brazzaville": "COG", "Côte d'Ivoire": "CIV", "Égypte": "EGY",
+    "Espagne": "ESP", "États-Unis": "USA", "Éthiopie": "ETH", "France": "FRA",
+    "Gabon": "GAB", "Ghana": "GHA", "Guinée": "GIN", "Inde": "IND",
+    "Italie": "ITA", "Japon": "JPN", "Kenya": "KEN", "Libéria": "LBR",
+    "Madagascar": "MDG", "Mali": "MLI", "Maroc": "MAR", "Mozambique": "MOZ",
+    "Niger": "NER", "Nigeria": "NGA", "Ouganda": "UGA", "Pakistan": "PAK",
+    "Pays-Bas": "NLD", "Portugal": "PRT", "République Sud-Africaine": "ZAF",
+    "Royaume-Uni": "GBR", "Rwanda": "RWA", "Sénégal": "SEN", "Soudan": "SDN",
+    "Suisse": "CHE", "Tanzanie": "TZA", "Tchad": "TCD", "Togo": "TGO",
+    "Tunisie": "TUN", "Turquie": "TUR", "Zambie": "ZMB", "Zimbabwe": "ZWE",
+    "Autre": "XXX"
+  };
+  return map[country] || "XXX";
+};
+
+// Exempted Countries List
+export const exemptedCountries = [
+  "Angola", "Burundi", "Cameroun", "Centrafrique", "Congo-Brazzaville",
+  "Gabon", "Guinée Équatoriale", "Kenya", "Ouganda", "Rwanda", "Sao Tomé-et-Principe",
+  "Tchad", "Tanzanie", "Zambie", "Zimbabwe"
+];

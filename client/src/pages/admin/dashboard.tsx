@@ -52,7 +52,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { Application, ApplicationStatus } from "@shared/schema";
-import { visaTypeLabels, applicationStatuses } from "@shared/schema";
+import { applicationStatuses } from "@shared/schema";
 
 interface DashboardStats {
   total: number;
@@ -276,30 +276,34 @@ export default function AdminDashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>N° Demande</TableHead>
-                      <TableHead>Demandeur</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Nationalité</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="w-[180px]">N° Demande</TableHead>
+                      <TableHead className="w-[150px]">Demandeur</TableHead>
+                      <TableHead className="w-[200px]">Email</TableHead>
+                      <TableHead className="w-[140px]">Type</TableHead>
+                      <TableHead className="w-[120px]">Nationalité</TableHead>
+                      <TableHead className="w-[120px]">Statut</TableHead>
+                      <TableHead className="w-[100px]">Date</TableHead>
+                      <TableHead className="text-right w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredApps.map((app) => (
                       <TableRow key={app.id} className="hover-elevate">
-                        <TableCell className="font-mono font-medium">
+                        <TableCell className="font-mono font-medium whitespace-nowrap">
                           {app.applicationNumber}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="max-w-[150px] truncate">
                           {app.firstName} {app.lastName}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate" title={app.email}>
+                          {app.email}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary">
-                            {visaTypeLabels[app.visaType as keyof typeof visaTypeLabels]?.fr || app.visaType}
+                            {app.visaType.replace(/_/g, " ")}
                           </Badge>
                         </TableCell>
-                        <TableCell>{app.nationality}</TableCell>
+                        <TableCell className="max-w-[120px] truncate">{app.nationality}</TableCell>
                         <TableCell>
                           <StatusBadge status={app.status as ApplicationStatus} />
                         </TableCell>
@@ -376,7 +380,7 @@ export default function AdminDashboard() {
       </main>
 
       <Dialog open={!!selectedApp && !actionType} onOpenChange={() => setSelectedApp(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Détails de la demande</DialogTitle>
             <DialogDescription>
@@ -416,35 +420,65 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-muted-foreground">Type de visa</p>
                   <p className="font-medium">
-                    {visaTypeLabels[selectedApp.visaType as keyof typeof visaTypeLabels]?.fr}
+                    {selectedApp.visaType.replace(/_/g, " ")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Dates de voyage</p>
+                  <p className="text-sm text-muted-foreground">Date d'arrivée</p>
                   <p className="font-medium">
-                    {new Date(selectedApp.arrivalDate).toLocaleDateString("fr-FR")} - {new Date(selectedApp.departureDate).toLocaleDateString("fr-FR")}
+                    {selectedApp.arrivalDate || "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Point d'entrée</p>
-                  <p className="font-medium">{selectedApp.entryPoint}</p>
+                  <p className="text-sm text-muted-foreground">Adresse en RDC</p>
+                  <p className="font-medium">{selectedApp.address}</p>
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm text-muted-foreground">Adresse en RDC</p>
-                <p className="font-medium">{selectedApp.addressInDRC}</p>
-              </div>
-
-              {selectedApp.sponsorName && (
+              {selectedApp.sponsorFirstName && (
                 <div>
                   <p className="text-sm text-muted-foreground">Sponsor/Hôte</p>
-                  <p className="font-medium">{selectedApp.sponsorName}</p>
+                  <p className="font-medium">{selectedApp.sponsorFirstName} {selectedApp.sponsorLastName}</p>
                 </div>
               )}
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex justify-between items-center">
+            <div className="flex gap-2">
+              {selectedApp && (selectedApp.status === "SUBMITTED" || selectedApp.status === "UNDER_REVIEW") && (
+                <>
+                  <Button
+                    variant="default"
+                    className="bg-success hover:bg-success/90"
+                    onClick={() => {
+                      setActionType("approve");
+                    }}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Approuver
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setActionType("reject");
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-warning text-warning hover:bg-warning/10"
+                    onClick={() => {
+                      setActionType("request_info");
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Demander des infos
+                  </Button>
+                </>
+              )}
+            </div>
             <Button variant="outline" onClick={() => setSelectedApp(null)}>
               Fermer
             </Button>
@@ -467,11 +501,11 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <Textarea
               placeholder={
-                actionType === "approve" 
-                  ? "Notes (optionnel)..." 
+                actionType === "approve"
+                  ? "Notes (optionnel)..."
                   : actionType === "reject"
-                  ? "Motif du refus..."
-                  : "Informations requises..."
+                    ? "Motif du refus..."
+                    : "Informations requises..."
               }
               value={actionNote}
               onChange={(e) => setActionNote(e.target.value)}
@@ -487,11 +521,11 @@ export default function AdminDashboard() {
               onClick={handleAction}
               disabled={updateStatusMutation.isPending || (actionType !== "approve" && !actionNote.trim())}
               className={
-                actionType === "approve" 
-                  ? "bg-success hover:bg-success/90" 
+                actionType === "approve"
+                  ? "bg-success hover:bg-success/90"
                   : actionType === "reject"
-                  ? "bg-destructive hover:bg-destructive/90"
-                  : ""
+                    ? "bg-destructive hover:bg-destructive/90"
+                    : ""
               }
               data-testid="button-confirm-action"
             >
